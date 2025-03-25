@@ -55,7 +55,10 @@ def generate_tensors(basepath, savepath, n_epochs=10, epoch_length=5, bipolar_pa
     
     for i in range(len(name_files)):
         file = name_files[i]
-        raw = mne.io.read_raw_edf(basepath + name_files[i], preload=True, verbose=False)
+        if  file.endswith('.edf'):
+            raw = mne.io.read_raw_edf(basepath + name_files[i], preload=True, verbose=False)
+        elif file.endswith('.fif'):
+            raw = mne.io.read_raw_fif(basepath + name_files[i], preload=True, verbose=False)
 
         if raw.info['sfreq'] != 200:
             raw.resample(200)

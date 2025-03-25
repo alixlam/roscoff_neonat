@@ -37,8 +37,45 @@ def compute_r_op(X):
     r_op = torch.from_numpy(inv(sqrtm(r)))
     return r_op
 
-def EA_transform(X):
-    new_X =[]
+def EA_transform(Xlist):
+    X = torch.cat(Xlist,0)
     sqrt_R_s = compute_r_op(X).float()
-    new_X = torch.einsum("fe,bet->bft",sqrt_R_s, X)
+    new_X = [torch.einsum("fe,bet->bft",sqrt_R_s, x) for x in Xlist]
     return new_X
+
+def generate_tensors(basepath, savepath, n_epochs=10, epoch_length=5, bipolar_pairs=None):
+    """
+    Generate tensors from EDF files and save them to disk.
+    basepath: str, path to the directory containing the EDF files
+    savepath: str, path to the directory where the tensors will be saved
+    n_epochs: int, number of epochs to extract
+    epoch_length: int, length of each epochs in seconds
+    """
+    name_files = os.listdir(basepath)
+    
+    for i in range(len(name_files)):
+        file = name_files[i]
+        raw = mne.io.read_raw_edf(basepath + name_files[i], preload=True, verbose=False)
+
+        if raw.info['sfreq'] != 200:
+            raw.resample(200)
+
+        # Apply each bipolar refererance
+        for anode, cathode, new_name in bipolar_pairs:
+            # raw = raw.set_bipolar_reference(anode=anode, cathode=cathode, ch_name=new_name, drop_refs=False)
+
+            raw = mne.set_bipolar_reference(raw, anode=anode, cathode=cathode,ch_name=new_name,drop_refs=False)
+        raw.pick_channels([name for _, _, name in bipolar_pairs])
+
+        tensor_data = randomEpochs(raw)
+        tensor_data = tensor_data / (
+                np.quantile(
+                    np.abs(tensor_data), q=0.95, method="linear", axis=-1, keepdims=True
+                )
+                + 1e-8
+            )
+        tensor_data = torch.FloatTensor(tensor_data)
+    return
+
+
+

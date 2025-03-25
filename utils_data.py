@@ -5,6 +5,7 @@ import torch
 import numpy as np
 import mne
 mne.set_log_level(verbose='ERROR')
+from scipy.linalg import sqrtm, inv,pinv
 
 
 def randomEpochs(raw, n_epochs=10, epoch_length=5):
@@ -31,3 +32,13 @@ def randomEpochs(raw, n_epochs=10, epoch_length=5):
     tensor_data = torch.tensor(np.stack(epochs), dtype=torch.float32)
     return tensor_data
 
+def compute_r_op(X):
+    r = torch.einsum('bet, tab -> bea',X,X.T).mean(0)
+    r_op = torch.from_numpy(inv(sqrtm(r)))
+    return r_op
+
+def EA_transform(X):
+    new_X =[]
+    sqrt_R_s = compute_r_op(X).float()
+    new_X = torch.einsum("fe,bet->bft",sqrt_R_s, X)
+    return new_X

@@ -60,12 +60,11 @@ def interpolate( data_path ):
     return ssi_biot_data 
 
 if __name__ == "__main__":
-    home = os.path.expanduser("~")
-    data_folder = Path("Documents/ROSCOFF/data") # folder path from home, to adapt
-    patient = "01"
-    epoch = "1"
-    file = f"ID{patient}_epoch{epoch}"
-    data_path = Path( home,  data_folder, "OTool" , "EDF_format", f"{file}.edf" ) # t
-
-    ssi_biot_data = interpolate( data_path )
-    ssi_biot_data.plot()
+    #home = os.path.expanduser("~")
+    data_folder = Path("C:/Users/lucas/Documents/THESE/Neonat/") # folder path from home, to adapt
+    name_files = os.listdir(Path(data_folder,"OTooleetal.ScientificData_2023", "EDF_format"))
+    for i in range(len(name_files)):
+        data_path = Path(data_folder,"OTooleetal.ScientificData_2023", "EDF_format", name_files[i] )
+        print(data_path)
+        ssi_biot_data = interpolate( data_path)
+        ssi_biot_data.save( Path(data_folder,"OTooleetal.ScientificData_2023", "MNE_format", name_files[i][:-4]+".fif") )

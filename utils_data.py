@@ -7,6 +7,58 @@ import mne
 mne.set_log_level(verbose='ERROR')
 from scipy.linalg import sqrtm, inv,pinv
 
+BIPOLAR_18 = [
+    ('F3', 'T3', 'F3-T3'),
+    ('T3', 'O1', 'T3-O1'),
+    ('F3', 'C3', 'F3-C3'),
+    ('C3', 'O1', 'C3-O1'),
+    ('F3', 'Cz', 'F3-Cz'),
+    ('Cz', 'O1', 'Cz-O1'),
+    ('F4', 'T4', 'F4-T4'),
+    ('T4', 'O2', 'T4-O2'),
+    ('F4', 'C4', 'F4-C4'),
+    ('C4', 'O2', 'C4-O2'),
+    ('F4', 'Cz', 'F4-Cz'),
+    ('Cz', 'O2', 'Cz-O2'),
+    ('Cz', 'C3', 'Cz-C3'),
+    ('C3', 'T3', 'C3-T3'),
+    ('Cz', 'C4', 'Cz-C4'),
+    ('C4', 'T4', 'C4-T4'),
+    ('F3', 'F4', 'F3-F4'),
+    ('O2', 'O1', 'O2-O1')
+]
+
+BIPOLAR_8 = [
+    ('F3', 'C3', 'F3-C3'),
+    ('T3', 'C3', 'T3-C3'),
+    ('O1', 'C3', 'O1-C3'),
+    ('C3', 'Cz', 'C3-Cz'),
+    ('Cz', 'C4', 'Cz-C4'),
+    ('F4', 'C4', 'F4-C4'),
+    ('T4', 'C4', 'T4-C4'),
+    ('O2', 'C4', 'O2-C4')
+]
+
+BIPOLAR_18_interp = [
+    ('FP1', 'F7', 'FP1-F7'),
+    ('F7', 'T7', 'F7-T7'),
+    ('T7', 'P7', 'T7-P7'),
+    ('P7', 'O1', 'P7-O1'),
+    ('FP2', 'F8', 'FP2-F8'),
+    ('F8', 'T8', 'F8-T8'),
+    ('T8', 'P8', 'T8-P8'),
+    ('P8', 'O2', 'P8-O2'),
+    ('FP1', 'F3', 'FP1-F3'),
+    ('F3', 'C3', 'F3-C3'),
+    ('C3', 'P3', 'C3-P3'),
+    ('P3', 'O1', 'P3-O1'),
+    ('FP2', 'F4', 'FP2-F4'),
+    ('F4', 'C4', 'F4-C4'),
+    ('C4', 'P4', 'C4-P4'),
+    ('P4', 'O2', 'P4-O2'),
+    ('C3', 'A2', 'C3-A2'),
+    ('C4', 'A1', 'C4-A1')
+]
 
 def randomEpochs(raw, n_epochs=10, epoch_length=5):
     """
@@ -75,7 +127,20 @@ def generate_tensors(basepath, savepath, n_epochs=10, epoch_length=5, bipolar_pa
                 + 1e-8
             )
         tensor_data = torch.FloatTensor(tensor_data)
+        if os.path.exists(savepath) == False:
+            os.makedirs(savepath)
+        torch.save(tensor_data, os.path.join(savepath, file[:-4] + ".pt"))
     return
 
+if __name__ == "__main__":
+    import os
+    data_path = "/Brain/private/OTooleetal.ScientificData_2023/"
+    save_path = "/Brain/private/OTooleetal.ScientificData_2023/"
+
+    # Generate for BIPOLAR 18
+    generate_tensors(os.path.join(data_path, "EDF_format/"), os.path.join(save_path, "bipolar_18"),bipolar_pairs=BIPOLAR_18)
+    generate_tensors(os.path.join(data_path, "EDF_format/"), os.path.join(save_path, "bipolar_8"),bipolar_pairs=BIPOLAR_8)
+    #generate_tensors(os.path.join(data_path, "EDF_format_interp"), os.path.join(save_path, "bipolar_18_interp"),bipolar_pairs=BIPOLAR_18_interp)
 
 
+    

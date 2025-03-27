@@ -1,1 +1,2 @@
-from .biot import BIOTClassifier, UnsupervisedPretrain, SupervisedPretrain, BIOTEncoder
+from .biot import BIOTClassifier, BIOTEncoder
+from .reve import ReveEncoder

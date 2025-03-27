@@ -40,19 +40,19 @@ BIPOLAR_8 = [
 ]
 
 BIPOLAR_18_interp = [
-    ('FP1', 'F7', 'FP1-F7'),
+    ('Fp1', 'F7', 'Fp1-F7'),
     ('F7', 'T7', 'F7-T7'),
     ('T7', 'P7', 'T7-P7'),
     ('P7', 'O1', 'P7-O1'),
-    ('FP2', 'F8', 'FP2-F8'),
+    ('Fp2', 'F8', 'Fp2-F8'),
     ('F8', 'T8', 'F8-T8'),
     ('T8', 'P8', 'T8-P8'),
     ('P8', 'O2', 'P8-O2'),
-    ('FP1', 'F3', 'FP1-F3'),
+    ('Fp1', 'F3', 'Fp1-F3'),
     ('F3', 'C3', 'F3-C3'),
     ('C3', 'P3', 'C3-P3'),
     ('P3', 'O1', 'P3-O1'),
-    ('FP2', 'F4', 'FP2-F4'),
+    ('Fp2', 'F4', 'Fp2-F4'),
     ('F4', 'C4', 'F4-C4'),
     ('C4', 'P4', 'C4-P4'),
     ('P4', 'O2', 'P4-O2'),
@@ -135,15 +135,36 @@ def generate_tensors(basepath, savepath, n_epochs=10, epoch_length=5, bipolar_pa
         torch.save(tensor_data, os.path.join(savepath, file[:-4] + ".pt"))
     return
 
+def reshape_tensors_REVE(tensor, window_size=200):
+    b, c, t = tensor.shape
+    tensor = tensor.view(b, c, t//window_size, window_size)
+    tensor = tensor.permute(0, 2, 1, 3)
+    tensor = tensor.reshape(b*t//window_size, c, window_size)
+    tensor = tensor.to(torch.float32)
+    return tensor
+
+def get_positions(bipolar_montage):
+    if bipolar_montage == "bipolar_18":
+        bipolar_pairs = BIPOLAR_18
+    elif bipolar_montage == "bipolar_8":
+        bipolar_pairs = BIPOLAR_8
+    elif bipolar_montage == "bipolar_18_interp":
+        bipolar_pairs = BIPOLAR_18_interp
+    else:
+        raise ValueError("Invalid bipolar montage")
+    chann = mne.channels.make_standard_montage('standard_1005').get_positions()['ch_pos']
+    pos = torch.tensor(np.array([(chann[ch[0]] + chann[ch[1]])/2 for ch in bipolar_pairs]).astype('float32'))
+    return pos
+
 if __name__ == "__main__":
     import os
     data_path = "/Brain/private/OTooleetal.ScientificData_2023/"
     save_path = "/Brain/private/OTooleetal.ScientificData_2023/"
 
     # Generate for BIPOLAR 18
-    generate_tensors(os.path.join(data_path, "EDF_format/"), os.path.join(save_path, "bipolar_18"),bipolar_pairs=BIPOLAR_18)
-    generate_tensors(os.path.join(data_path, "EDF_format/"), os.path.join(save_path, "bipolar_8"),bipolar_pairs=BIPOLAR_8)
-    #generate_tensors(os.path.join(data_path, "EDF_format_interp"), os.path.join(save_path, "bipolar_18_interp"),bipolar_pairs=BIPOLAR_18_interp)
+    #generate_tensors(os.path.join(data_path, "EDF_format/"), os.path.join(save_path, "bipolar_18"),bipolar_pairs=BIPOLAR_18)
+    #generate_tensors(os.path.join(data_path, "EDF_format/"), os.path.join(save_path, "bipolar_8"),bipolar_pairs=BIPOLAR_8)
+    generate_tensors(os.path.join(data_path, "MNE_format/"), os.path.join(save_path, "bipolar_18_interp"),bipolar_pairs=BIPOLAR_18_interp)
 
 
     

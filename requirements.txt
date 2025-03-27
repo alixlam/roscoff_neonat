@@ -1,3 +1,6 @@
 torch
 mne
 numpy
+pandas
+scikit-learn
+linear_attention_transformer
